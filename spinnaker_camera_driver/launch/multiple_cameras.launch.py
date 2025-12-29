@@ -29,19 +29,15 @@ camera_params = {
     'compute_brightness': True,
     'dump_node_map': False,
     'adjust_timestamp': True,
-    'gain_auto': 'Off',
+    'pixel_format': 'BGR8',  # 컬러 이미지 출력 (또는 'BayerRG8', 'RGB8')
+    'gain_auto': 'Continuous',  # 자동 게인 (또는 'Off'로 수동)
     'gain': 0,
-    'exposure_auto': 'Off',
-    'exposure_time': 9000,
-    'line2_selector': 'Line2',
-    'line2_v33enable': False,
-    'line3_selector': 'Line3',
-    'line3_linemode': 'Input',
-    'trigger_selector': 'FrameStart',
-    'trigger_mode': 'On',
-    'trigger_source': 'Line3',
-    'trigger_delay': 9,
-    'trigger_overlap': 'ReadOut',
+    'exposure_auto': 'Continuous',  # 자동 노출 (또는 'Off'로 수동)
+    'exposure_time': 9000,  # exposure_auto='Off'일 때만 적용
+    'frame_rate_auto': 'Off',
+    'frame_rate': 30.0,  # 원하는 프레임 레이트
+    'frame_rate_enable': True,
+    'trigger_mode': 'Off',  # 소프트웨어 트리거 비활성화 (free-running 모드)
     'chunk_mode_active': True,
     'chunk_selector_frame_id': 'FrameID',
     'chunk_enable_frame_id': True,
@@ -118,12 +114,12 @@ def generate_launch_description():
             LaunchArg('cam_1_type', default_value='blackfly_s', description='type of camera 1'),
             LaunchArg(
                 'cam_0_serial',
-                default_value="'20435008'",
+                default_value="'23287704'",
                 description='FLIR serial number of camera 0 (in quotes!!)',
             ),
             LaunchArg(
                 'cam_1_serial',
-                default_value="'20415937'",
+                default_value="'23299086'",
                 description='FLIR serial number of camera 1 (in quotes!!)',
             ),
             OpaqueFunction(function=launch_setup),
