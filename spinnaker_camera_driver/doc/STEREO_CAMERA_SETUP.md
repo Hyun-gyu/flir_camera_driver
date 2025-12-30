@@ -171,3 +171,4 @@ sudo ./scripts/linux_setup_flir
 
 자세한 내용: `spinnaker_synchronized_camera_driver/doc/index.rst`
 
+

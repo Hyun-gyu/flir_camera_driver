@@ -14,6 +14,86 @@ This repository contains ROS2 packages for machine vision cameras made by
 Teledyne FLIR (formerly known as PointGrey). Note: this software is *not
 supported* by Teleydyne FLIR.
 
+Quick Start (Stereo Camera Setup)
+=================================
+
+Installation
+------------
+
+.. code-block:: bash
+
+   # 1. Create workspace
+   mkdir -p ~/ros2_ws/src
+   cd ~/ros2_ws/src
+
+   # 2. Clone repository
+   git clone https://github.com/Hyun-gyu/flir_camera_driver.git
+   cd flir_camera_driver
+   git checkout humble-devel
+
+   # 3. Install Spinnaker SDK (download from FLIR website)
+   # https://www.flir.com/products/spinnaker-sdk/
+
+   # 4. Install dependencies
+   cd ~/ros2_ws
+   rosdep install --from-paths src --ignore-src -r -y
+
+   # 5. Build
+   colcon build --symlink-install
+
+   # 6. Setup udev rules (for USB cameras)
+   sudo ~/ros2_ws/src/flir_camera_driver/spinnaker_camera_driver/scripts/linux_setup_flir
+
+Camera Configuration
+--------------------
+
+Edit ``spinnaker_camera_driver/launch/multiple_cameras.launch.py``:
+
+.. code-block:: python
+
+   # Update serial numbers (find with SpinView)
+   LaunchArg('cam_0_serial', default_value="'YOUR_SERIAL_1'", ...),
+   LaunchArg('cam_1_serial', default_value="'YOUR_SERIAL_2'", ...),
+
+   # Adjust frame rate
+   camera_params = {
+       'frame_rate': 30.0,  # Change to 15.0, 60.0, etc.
+       ...
+   }
+
+Run Cameras
+-----------
+
+.. code-block:: bash
+
+   # Terminal 1: Start cameras
+   source ~/ros2_ws/install/setup.bash
+   ros2 launch spinnaker_camera_driver multiple_cameras.launch.py
+
+   # Terminal 2: Check topics
+   ros2 topic list | grep image
+
+Software Synchronization
+------------------------
+
+For stereo cameras without GPIO hardware connection:
+
+.. code-block:: bash
+
+   # Terminal 2: Run sync node
+   cd ~/ros2_ws/src/flir_camera_driver/spinnaker_camera_driver/scripts
+   python3 stereo_sync_node.py
+
+   # With custom topics
+   python3 stereo_sync_node.py --ros-args \
+       -p cam0_topic:=/cam_0/image_raw \
+       -p cam1_topic:=/cam_1/image_raw \
+       -p slop:=0.1
+
+Synchronized images are published to ``/synced/cam_0/image_raw`` and ``/synced/cam_1/image_raw``.
+
+For detailed setup guide, see `STEREO_CAMERA_SETUP.md <spinnaker_camera_driver/doc/STEREO_CAMERA_SETUP.md>`__.
+
 Packages
 ========
 
