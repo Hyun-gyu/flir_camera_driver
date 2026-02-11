@@ -25,19 +25,47 @@ from launch_ros.descriptions import ComposableNode
 from launch_ros.substitutions import FindPackageShare
 
 camera_params = {
+    # ============== 기본 설정 ==============
     'debug': False,
     'compute_brightness': True,
     'dump_node_map': False,
     'adjust_timestamp': True,
-    'pixel_format': 'BGR8',  # 컬러 이미지 출력 (또는 'BayerRG8', 'RGB8')
-    'gain_auto': 'Continuous',  # 자동 게인 (또는 'Off'로 수동)
+    
+    # ============== 이미지 설정 ==============
+    'pixel_format': 'BGR8',              # 컬러 이미지 출력 (또는 'BayerRG8', 'RGB8')
+    'gain_auto': 'Continuous',           # 자동 게인 (또는 'Off'로 수동)
     'gain': 0,
-    'exposure_auto': 'Continuous',  # 자동 노출 (또는 'Off'로 수동)
-    'exposure_time': 9000,  # exposure_auto='Off'일 때만 적용
+    'exposure_auto': 'Continuous',       # 자동 노출 (또는 'Off'로 수동)
+    'exposure_time': 9000,               # exposure_auto='Off'일 때만 적용 (μs)
+    
+    # ╔═══════════════════════════════════════════════════════════════════════════╗
+    # ║                    🔧 하드웨어 트리거 설정 (FLIR BFS)                          ║
+    # ║  Teensy 동기화 보드 사용 시 아래 파라미터 수정 필수                                 ║
+    # ╚═══════════════════════════════════════════════════════════════════════════╝
+    #
+    # ┌─────────────────────────────────────────────────────────────────────────┐
+    # │ [Free-Running 모드] - 카메라 자체 타이밍으로 촬영 (현재 설정)                     │
+    # └─────────────────────────────────────────────────────────────────────────┘
     'frame_rate_auto': 'Off',
-    'frame_rate': 30.0,  # 원하는 프레임 레이트
-    'frame_rate_enable': True,
-    'trigger_mode': 'Off',  # 소프트웨어 트리거 비활성화 (free-running 모드)
+    'frame_rate': 30.0,                  # 원하는 프레임 레이트
+    'frame_rate_enable': True,           # ⚠️ 트리거 모드에서는 False로 변경
+    'trigger_mode': 'Off',               # ⚠️ 트리거 모드에서는 'On'으로 변경
+    #
+    # ┌─────────────────────────────────────────────────────────────────────────┐
+    # │ [Hardware Trigger 모드] - Teensy 보드 사용 시 아래 주석 해제                   │   
+    # │  GPIO 연결: Teensy Pin 2 → Camera 0 Line0                                │
+    # │             Teensy Pin 3 → Camera 1 Line0                               │
+    # └─────────────────────────────────────────────────────────────────────────┘
+    # 'frame_rate_enable': False,        # 트리거 모드에서는 프레임레이트 비활성화
+    # 'trigger_mode': 'On',              # 외부 트리거 모드 활성화
+    # 'trigger_source': 'Line0',         # BFS GPIO Line0 (트리거 입력 핀)
+    # 'trigger_selector': 'FrameStart',  # 프레임 시작 시 트리거
+    # 'trigger_activation': 'RisingEdge',# 상승 엣지에서 촬영 (Teensy와 일치)
+    # 'trigger_overlap': 'ReadOut',      # 고속 촬영 시 오버랩 허용
+    #
+    # ═══════════════════════════════════════════════════════════════════════════
+    
+    # ============== Chunk 데이터 (메타데이터) ==============
     'chunk_mode_active': True,
     'chunk_selector_frame_id': 'FrameID',
     'chunk_enable_frame_id': True,
