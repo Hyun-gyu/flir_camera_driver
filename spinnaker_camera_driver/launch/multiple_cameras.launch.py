@@ -154,12 +154,12 @@ def generate_launch_description():
             ),
             LaunchArg(
                 'cam_0_serial',
-                default_value="'23287704'",
+                default_value="'23185376'",
                 description='FLIR serial number of camera 0 (in quotes!!)',
             ),
             LaunchArg(
                 'cam_1_serial',
-                default_value="'23299086'",
+                default_value="'23185377'",
                 description='FLIR serial number of camera 1 (in quotes!!)',
             ),
             OpaqueFunction(function=launch_setup),
