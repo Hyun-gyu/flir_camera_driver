@@ -32,10 +32,10 @@ camera_params = {
     'adjust_timestamp': True,
     
     # ============== 이미지 설정 ==============
-    'pixel_format': 'RGB8',              # 컬러 이미지 출력. Mono8이면 흑백으로 보임
-    'gain_auto': 'Continuous',           # 자동 게인 (또는 'Off'로 수동)
-    'gain': 0,
-    'exposure_auto': 'Continuous',       # 자동 노출 (또는 'Off'로 수동)
+    'pixel_format': 'RGB8',              # 컬러 이미지 출력. Mono8/RGB8이면 흑백으로 보임
+    'gain_auto': 'Off',           # 자동 게인 (또는 'Off'로 수동)
+    'gain': 5.0,
+    'exposure_auto': 'Off',       # 자동 노출 (또는 'Off'로 수동)
     'exposure_time': 9000,               # exposure_auto='Off'일 때만 적용 (μs)
     
     # ╔═══════════════════════════════════════════════════════════════════════════╗
@@ -48,8 +48,8 @@ camera_params = {
     # └─────────────────────────────────────────────────────────────────────────┘
     'frame_rate_auto': 'Off',
     'frame_rate': 30.0,                  # 원하는 프레임 레이트
-    # 'frame_rate_enable': False,           # ⚠️ 트리거 모드에서는 False로 변경
-    # 'trigger_mode': 'on',               # ⚠️ 트리거 모드에서는 'On'으로 변경
+    # 'frame_rate_enable': True,           # ⚠️ 트리거 모드에서는 False로 변경
+    # 'trigger_mode': 'Off',               # ⚠️ 트리거 모드에서는 'On'으로 변경
     
     # ┌─────────────────────────────────────────────────────────────────────────┐
     # │ [Hardware Trigger 모드] - Teensy 보드 사용 시 아래 주석 해제                   │   
@@ -58,7 +58,7 @@ camera_params = {
     # └─────────────────────────────────────────────────────────────────────────┘
     'frame_rate_enable': False,        # 트리거 모드에서는 프레임레이트 비활성화
     'trigger_mode': 'On',              # 외부 트리거 모드 활성화
-    'trigger_source': 'Line0',         # BFS GPIO Line0 (트리거 입력 핀)
+    'trigger_source': 'Line3',         # BFS GPIO Line0 (트리거 입력 핀)
     'trigger_selector': 'FrameStart',  # 프레임 시작 시 트리거
     'trigger_activation': 'RisingEdge',# 상승 엣지에서 촬영 (Teensy와 일치)
     'trigger_overlap': 'ReadOut',      # 고속 촬영 시 오버랩 허용
