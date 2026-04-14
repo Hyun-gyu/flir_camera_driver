@@ -32,7 +32,7 @@ camera_params = {
     'adjust_timestamp': True,
     
     # ============== 이미지 설정 ==============
-    'pixel_format': 'RGB8',              # 컬러 이미지 출력. Mono8/RGB8이면 흑백으로 보임
+    'pixel_format': 'BGR8',              # 컬러 이미지 출력. OpenCV/rqt와 맞추기 쉬움
     'gain_auto': 'Off',           # 자동 게인 (또는 'Off'로 수동)
     'gain': 5.0,
     'exposure_auto': 'Off',       # 자동 노출 (또는 'Off'로 수동)
@@ -48,20 +48,20 @@ camera_params = {
     # └─────────────────────────────────────────────────────────────────────────┘
     'frame_rate_auto': 'Off',
     'frame_rate': 30.0,                  # 원하는 프레임 레이트
-    # 'frame_rate_enable': True,           # ⚠️ 트리거 모드에서는 False로 변경
-    # 'trigger_mode': 'Off',               # ⚠️ 트리거 모드에서는 'On'으로 변경
+    'frame_rate_enable': True,           # ⚠️ 트리거 모드에서는 False로 변경
+    'trigger_mode': 'Off',               # ⚠️ 트리거 모드에서는 'On'으로 변경
     
     # ┌─────────────────────────────────────────────────────────────────────────┐
     # │ [Hardware Trigger 모드] - Teensy 보드 사용 시 아래 주석 해제                   │   
     # │  GPIO 연결: Teensy Pin 2 → Camera 0 Line0                                │
     # │             Teensy Pin 3 → Camera 1 Line0                               │
     # └─────────────────────────────────────────────────────────────────────────┘
-    'frame_rate_enable': False,        # 트리거 모드에서는 프레임레이트 비활성화
-    'trigger_mode': 'On',              # 외부 트리거 모드 활성화
-    'trigger_source': 'Line3',         # BFS GPIO Line0 (트리거 입력 핀)
-    'trigger_selector': 'FrameStart',  # 프레임 시작 시 트리거
-    'trigger_activation': 'RisingEdge',# 상승 엣지에서 촬영 (Teensy와 일치)
-    'trigger_overlap': 'ReadOut',      # 고속 촬영 시 오버랩 허용
+    # 'frame_rate_enable': False,        # 트리거 모드에서는 프레임레이트 비활성화
+    # 'trigger_mode': 'On',              # 외부 트리거 모드 활성화
+    # 'trigger_source': 'Line3',         # BFS GPIO Line3 (트리거 입력 핀)
+    # 'trigger_selector': 'FrameStart',  # 프레임 시작 시 트리거
+    # 'trigger_activation': 'RisingEdge',# 상승 엣지에서 촬영 (Teensy와 일치)
+    # 'trigger_overlap': 'ReadOut',      # 고속 촬영 시 오버랩 허용
     
     # ═══════════════════════════════════════════════════════════════════════════
     
@@ -154,12 +154,14 @@ def generate_launch_description():
             ),
             LaunchArg(
                 'cam_0_serial',
-                default_value="'23185376'",
+                # default_value="'23287704'",
+                default_value="'23185377'",
                 description='FLIR serial number of camera 0 (in quotes!!)',
             ),
             LaunchArg(
                 'cam_1_serial',
-                default_value="'23185377'",
+                # default_value="'23299086'",
+                default_value="'23185376'",
                 description='FLIR serial number of camera 1 (in quotes!!)',
             ),
             OpaqueFunction(function=launch_setup),
