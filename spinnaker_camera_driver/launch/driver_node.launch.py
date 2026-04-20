@@ -23,6 +23,14 @@ from launch.substitutions import PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
+
+def _normalize_serial(value):
+    text = str(value).strip()
+    if len(text) >= 2 and text[0] == text[-1] and text[0] in {"'", '"'}:
+        text = text[1:-1].strip()
+    return text
+
+
 example_parameters = {
     'blackfly_s': {
         'debug': False,
@@ -157,6 +165,7 @@ def launch_setup(context, *args, **kwargs):
     """Launch camera driver node."""
     parameter_file = LaunchConfig('parameter_file').perform(context)
     camera_type = LaunchConfig('camera_type').perform(context)
+    serial = _normalize_serial(LaunchConfig('serial').perform(context))
     if not parameter_file:
         parameter_file = PathJoinSubstitution(
             [FindPackageShare('spinnaker_camera_driver'), 'config', camera_type + '.yaml']
@@ -175,7 +184,7 @@ def launch_setup(context, *args, **kwargs):
             {
                 'ffmpeg_image_transport.encoding': 'hevc_nvenc',
                 'parameter_file': parameter_file,
-                'serial_number': [LaunchConfig('serial')],
+                'serial_number': serial,
             },
         ],
         remappings=[

@@ -138,6 +138,16 @@ target_include_directories(camera_driver_node
   $<INSTALL_INTERFACE:include>
 )
 
+add_executable(list_cameras
+  src/list_cameras.cpp)
+
+target_link_libraries(list_cameras PUBLIC camera_driver PRIVATE Spinnaker::Spinnaker)
+
+target_include_directories(list_cameras
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
+
 target_include_directories(camera_driver PRIVATE include)
 
 if(SPINNAKER_WAS_DOWNLOADED)
@@ -152,6 +162,7 @@ endif()
 
 install(TARGETS
   camera_driver_node
+  list_cameras
   DESTINATION lib/${PROJECT_NAME}/)
 
 # the shared library goes into the global lib dir so it can

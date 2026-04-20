@@ -15,9 +15,12 @@
 #
 #
 
+import re
+import subprocess
+
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument as LaunchArg
-from launch.actions import OpaqueFunction
+from launch.actions import LogInfo, OpaqueFunction
 from launch.substitutions import LaunchConfiguration as LaunchConfig
 from launch.substitutions import PathJoinSubstitution
 from launch_ros.actions import ComposableNodeContainer
@@ -53,6 +56,85 @@ BASE_CAMERA_PARAMS = {
 
 def _parse_bool(value):
     return str(value).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _normalize_serial(value):
+    text = str(value).strip()
+    if len(text) >= 2 and text[0] == text[-1] and text[0] in {"'", '"'}:
+        text = text[1:-1].strip()
+    return text
+
+
+def _should_auto_assign(value):
+    return _normalize_serial(value).lower() in {"", "auto"}
+
+
+def _discover_flir_serials():
+    try:
+        proc = subprocess.run(
+            ["lsusb", "-v", "-d", "1e10:4000"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (FileNotFoundError, subprocess.CalledProcessError) as exc:
+        raise RuntimeError(
+            "Failed to enumerate FLIR cameras via lsusb. "
+            "Pass cam_0_serial/cam_1_serial explicitly."
+        ) from exc
+
+    devices = []
+    current = None
+    for line in proc.stdout.splitlines():
+        bus_match = re.match(r"Bus\s+(\d+)\s+Device\s+(\d+):", line)
+        if bus_match:
+            if current and current.get("serial"):
+                devices.append(current)
+            current = {
+                "bus": int(bus_match.group(1)),
+                "device": int(bus_match.group(2)),
+                "serial": None,
+            }
+            continue
+
+        if current and "iSerial" in line:
+            parts = line.split()
+            if parts:
+                current["serial"] = parts[-1]
+
+    if current and current.get("serial"):
+        devices.append(current)
+
+    devices.sort(key=lambda item: (item["bus"], item["device"]))
+    return [device["serial"] for device in devices]
+
+
+def _resolve_serials(context):
+    cam_0_serial = _normalize_serial(LaunchConfig("cam_0_serial").perform(context))
+    cam_1_serial = _normalize_serial(LaunchConfig("cam_1_serial").perform(context))
+    auto_assign = _parse_bool(LaunchConfig("auto_assign_serials").perform(context))
+
+    if not auto_assign and not _should_auto_assign(cam_0_serial) and not _should_auto_assign(cam_1_serial):
+        return cam_0_serial, cam_1_serial, []
+
+    discovered = _discover_flir_serials()
+
+    if _should_auto_assign(cam_0_serial):
+        if len(discovered) < 1:
+            raise RuntimeError("Auto-assign requested for cam_0, but no FLIR camera was found.")
+        cam_0_serial = str(int(discovered[0], 16))
+
+    if _should_auto_assign(cam_1_serial):
+        if len(discovered) < 2:
+            raise RuntimeError("Auto-assign requested for cam_1, but fewer than two FLIR cameras were found.")
+        cam_1_serial = str(int(discovered[1], 16))
+
+    logs = [
+        LogInfo(msg=f"[spinnaker_camera_driver] auto cam_0_serial={cam_0_serial}"),
+        LogInfo(msg=f"[spinnaker_camera_driver] auto cam_1_serial={cam_1_serial}"),
+    ] if auto_assign or _should_auto_assign(LaunchConfig("cam_0_serial").perform(context)) or _should_auto_assign(LaunchConfig("cam_1_serial").perform(context)) else []
+
+    return cam_0_serial, cam_1_serial, logs
 
 
 def _build_camera_params(context):
@@ -124,6 +206,7 @@ def make_camera_node(name, camera_type, serial, context):
 
 def launch_setup(context, *args, **kwargs):
     """Create multiple camera bringup with launch-configurable presets."""
+    cam_0_serial, cam_1_serial, logs = _resolve_serials(context)
     container = ComposableNodeContainer(
         name="stereo_camera_container",
         namespace="",
@@ -133,19 +216,19 @@ def launch_setup(context, *args, **kwargs):
             make_camera_node(
                 LaunchConfig("cam_0_name"),
                 LaunchConfig("cam_0_type").perform(context),
-                LaunchConfig("cam_0_serial"),
+                cam_0_serial,
                 context,
             ),
             make_camera_node(
                 LaunchConfig("cam_1_name"),
                 LaunchConfig("cam_1_type").perform(context),
-                LaunchConfig("cam_1_serial"),
+                cam_1_serial,
                 context,
             ),
         ],
         output="screen",
     )
-    return [container]
+    return logs + [container]
 
 
 def generate_launch_description():
@@ -166,13 +249,18 @@ def generate_launch_description():
             LaunchArg("cam_1_type", default_value="blackfly_s", description="type of camera 1"),
             LaunchArg(
                 "cam_0_serial",
-                default_value="'23185377'",
-                description="FLIR serial number of camera 0 (in quotes!!)",
+                default_value="auto",
+                description="FLIR serial number of camera 0 (quoted) or 'auto'",
             ),
             LaunchArg(
                 "cam_1_serial",
-                default_value="'23185376'",
-                description="FLIR serial number of camera 1 (in quotes!!)",
+                default_value="auto",
+                description="FLIR serial number of camera 1 (quoted) or 'auto'",
+            ),
+            LaunchArg(
+                "auto_assign_serials",
+                default_value="true",
+                description="Auto-detect FLIR serials from connected USB devices when serial args are blank or 'auto'",
             ),
             LaunchArg(
                 "camera_mode",
