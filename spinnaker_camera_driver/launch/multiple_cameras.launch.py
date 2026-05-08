@@ -58,6 +58,16 @@ def _parse_bool(value):
     return str(value).strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _flir_off_continuous_enum(value):
+    text = str(value).strip()
+    lowered = text.lower()
+    if lowered in {"0", "false", "no", "off"}:
+        return "Off"
+    if lowered in {"1", "true", "yes", "on", "continuous"}:
+        return "Continuous"
+    return text
+
+
 def _normalize_serial(value):
     text = str(value).strip()
     if len(text) >= 2 and text[0] == text[-1] and text[0] in {"'", '"'}:
@@ -150,9 +160,13 @@ def _build_camera_params(context):
         LaunchConfig("adjust_timestamp").perform(context)
     )
     params["pixel_format"] = LaunchConfig("pixel_format").perform(context)
-    params["gain_auto"] = LaunchConfig("gain_auto").perform(context)
+    params["gain_auto"] = _flir_off_continuous_enum(
+        LaunchConfig("gain_auto").perform(context)
+    )
     params["gain"] = float(LaunchConfig("gain").perform(context))
-    params["exposure_auto"] = LaunchConfig("exposure_auto").perform(context)
+    params["exposure_auto"] = _flir_off_continuous_enum(
+        LaunchConfig("exposure_auto").perform(context)
+    )
     params["exposure_time"] = float(LaunchConfig("exposure_time").perform(context))
     params["frame_rate_auto"] = LaunchConfig("frame_rate_auto").perform(context)
     params["frame_rate"] = float(LaunchConfig("frame_rate").perform(context))
