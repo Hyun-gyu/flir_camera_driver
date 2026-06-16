@@ -202,6 +202,7 @@ def make_camera_node(name, camera_type, serial, context):
         package="spinnaker_camera_driver",
         plugin="spinnaker_camera_driver::CameraDriver",
         name=name,
+        namespace=LaunchConfig("namespace"),
         parameters=[
             _build_camera_params(context),
             {
@@ -221,9 +222,10 @@ def make_camera_node(name, camera_type, serial, context):
 def launch_setup(context, *args, **kwargs):
     """Create multiple camera bringup with launch-configurable presets."""
     cam_0_serial, cam_1_serial, logs = _resolve_serials(context)
+    namespace = LaunchConfig("namespace")
     container = ComposableNodeContainer(
         name="stereo_camera_container",
-        namespace="",
+        namespace=namespace,
         package="rclcpp_components",
         executable="component_container",
         composable_node_descriptions=[
@@ -270,6 +272,11 @@ def generate_launch_description():
                 "cam_1_serial",
                 default_value="auto",
                 description="FLIR serial number of camera 1 (quoted) or 'auto'",
+            ),
+            LaunchArg(
+                "namespace",
+                default_value="",
+                description="ROS namespace for the camera container and camera topics",
             ),
             LaunchArg(
                 "auto_assign_serials",
